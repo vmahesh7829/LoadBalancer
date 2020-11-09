@@ -91,7 +91,6 @@ void enqueue(struct Queue* queue, int item)
     queue->rear = (queue->rear + 1)%queue->capacity; 
     queue->array[queue->rear] = item; 
     queue->size = queue->size + 1; 
- //  printf("%d enqueued to queue\n", item); 
 } 
   
 // Function to remove an item from queue.  
@@ -164,7 +163,6 @@ bool check_filename(char* buffer){
     }
     for(int i=0; i<strlen(buffer); i++){
         if (check_ascii(buffer[i]) == false){
-       //     printf("%d\n",i);
             return false;
             
         }
@@ -195,23 +193,17 @@ bool valid_methodname(struct httpObject* message){
 void process_header(char* header, struct httpObject* message){
      // tokenize the header to grab everything before the first :
 
-   //     printf("Header: %s\n", header);
 
         char* rest = header;     // this holds everything after :
         char* token = strtok_r(rest, ":", &rest); // this holds everything before :
 
 
-    //    printf("rest %s\n", rest);
-    //    printf("token %s\n", token);
-
-   //     printf ("***%s***\n", rest);
         if (strcmp(token,"Content-Length") == 0) {
             if (message->content_length_read ==1){
                 strcpy(message->status_code,"400 Bad Request");
             }
             else {
                 if (cont_len_isz(rest)){
-            //        printf("content-length is 0\n");
                     message->content_length= 0;
                     message->content_length_read = 1;
                 }
@@ -221,7 +213,6 @@ void process_header(char* header, struct httpObject* message){
                  }
                 else{
                     message->content_length= atoi(rest);
-              //      printf("content_length= ***%d***\n", message->content_length);
                     message->content_length_read = 1;
                 }
 
@@ -237,7 +228,6 @@ void process_header(char* header, struct httpObject* message){
 
  void handle_headers( char* all_headers, struct httpObject* message) {
 
-//     printf("all_headers is: %s\n", all_headers );
 
     // this puts the first header into first_header
      char* rest_headers = all_headers; 
@@ -269,7 +259,6 @@ void read_http_request(ssize_t client_sockd, struct httpObject* message) {
     uint8_t buff[BUFFER_SIZE +1];
     memset(buff, 0, sizeof(buff));
 
- //   printf("status code is: %s \n", message->status_code);
     ssize_t bytes = recv(client_sockd, buff, BUFFER_SIZE,0);
     buff[bytes]= 0;
 
@@ -312,9 +301,6 @@ void errcode_respond (int client_sockd, struct httpObject* message, char* str_ou
     sprintf(str_out + strlen(str_out),"========\n");
     
 
- //   printf("log_offset is: %d\n", log_offset);
- //   printf("strlen strout is: %ld\n", strlen(str_out));
-
     pthread_mutex_lock(&offset_lock);
     //*****************filelock and increment the buffer offset*********************//
     log_offset += strlen(str_out);
@@ -325,7 +311,6 @@ void errcode_respond (int client_sockd, struct httpObject* message, char* str_ou
     pthread_mutex_unlock(&offset_lock);
 
     pwrite(log_fd, str_out, strlen(str_out), offset_saver);
-//    printf("log message is: %s", str_out);
 
     /////////////////////////log code ends here////////////////////////////////////////
 
@@ -363,7 +348,6 @@ void gen_response(int in_fd, int out_fd, struct httpObject* message, char* str_o
         }
 
         
-    //    printf("content length is: %d\n", message->content_length);
         memset(str_out, 0, sizeof(str_out));
         //generate status code
         strcpy(message->status_code,"200 OK");
@@ -373,8 +357,6 @@ void gen_response(int in_fd, int out_fd, struct httpObject* message, char* str_o
         write(out_fd,str_out,strlen(str_out));
         memset(str_out, 0, sizeof(str_out));
 
-    //    printf("in get. in_fd (which is the file fd) is: %d\n", in_fd);
-    //    printf("in get. out_fd (which is the client socket) is: %d\n", out_fd);
 
     }
 
@@ -384,8 +366,6 @@ void gen_response(int in_fd, int out_fd, struct httpObject* message, char* str_o
     int entry_saver;
 
     if (logging_enabled == true){
-
-    printf("log_offset is: %d\n", log_offset);
 
     // put the first line of log in buffer
     sprintf(str_out, "%s /%s length %d\n",message->method,message->filename, message->content_length);
@@ -498,7 +478,7 @@ void gen_response(int in_fd, int out_fd, struct httpObject* message, char* str_o
             offset_saver += nw;
             i++;
         }
-   //     printf("i is: %d\n", i); 
+
 
             
         ///////////////// logging ends here //////////////////////////
@@ -509,10 +489,8 @@ void gen_response(int in_fd, int out_fd, struct httpObject* message, char* str_o
         bytes_written = write(out_fd,full_str,bytes_requested);
         bytes_to_write -= bytes_written;
 
-  //      printf("bytes_to_write are: %d\n", bytes_to_write);
-
         }
-   //     printf("end while loop\n");
+
     
         memset(str_out, 0, sizeof(str_out));
         strcpy(str_out,"\n========\n");
@@ -530,9 +508,6 @@ void construct_http_response(ssize_t client_sockd, struct httpObject* message) {
             strcpy(message->status_code,"400 Bad Request");
             message->error_number = 400;
 
-            printf("message.method is: %s\n", message->method);
-            printf("message.filename is: %s\n", message->method);
-            printf("message.status code is: %s\n", message->method);
        }
 
        // added a flag for invalid http.
@@ -602,10 +577,6 @@ void construct_http_response(ssize_t client_sockd, struct httpObject* message) {
       }
         else if(strcmp(message->method,"GET")==0){
 
-    //    printf("in construct GET response\n");
-    //    printf("method is: %s\n", message->method);
-    //    printf("filename is: %s\n", message->filename);
-
 
         //now we want to check for the file,construct a response
         // and send the response back to the client
@@ -613,8 +584,6 @@ void construct_http_response(ssize_t client_sockd, struct httpObject* message) {
         //try to read from the file
 
         int read_fd = open(message->filename, O_RDONLY);
-
-    //    printf("read_fd is: %d\n", read_fd);
 
         // this assumes that if read_fd is -1 file DNE
         if(read_fd == -1){
@@ -638,9 +607,6 @@ void construct_http_response(ssize_t client_sockd, struct httpObject* message) {
             return;
         }
 
-
-    //    printf("about to execute get: gen_response: \n");
-    //    printf("read_fd(which is the fd of the file created) is: %d\n", read_fd);
         gen_response(read_fd,client_sockd,message,str_out);
        
         close(read_fd);
@@ -649,14 +615,8 @@ void construct_http_response(ssize_t client_sockd, struct httpObject* message) {
     
     } else if (strcmp(message->method,"HEAD")==0) {
 
-    //    printf("in construct HEAD response\n");
-    //    printf("method is: %s\n", message->method);
-    //    printf("filename is: %s\n", message->filename);
-    //    printf("status code is: %s\n", message->status_code);
 
         int read_fd = open(message->filename, O_RDONLY);
-
-    //    printf("read fd is: %d\n", read_fd);
 
     
 
@@ -762,8 +722,6 @@ static void *worker_thread(void *arg)
         --queue_size;
         worker_fd = dequeue(queue_ptr);
 
-     //   printf("worker %d got out. worker_fd is: %d\n",(int) arg, worker_fd);
-
         pthread_mutex_unlock(&mutex);
 
         read_http_request(worker_fd, &message);
@@ -826,11 +784,6 @@ int main(int argc, char** argv)
 
     
     int nthreads = num_threads_val;
-
-    //printf("port number is: %d\n", port_number);
-    //printf("logging enabled is: %d\n", logging_enabled);
-    //printf("logfilename is: %s\n", log_file);
-    //printf("nthreads is: %d\n", nthreads);
     
 
 
@@ -873,7 +826,6 @@ int main(int argc, char** argv)
 
 
     ret = listen(server_sockd, SOMAXCONN);
- //   printf("SOMAXCONN is %d\n",SOMAXCONN);
 
     if (ret < 0) {
 		    perror("Listen Error");
@@ -903,11 +855,9 @@ int main(int argc, char** argv)
     
 
     if (pthread_mutex_init(&offset_lock, NULL) != 0) { 
-    //    printf("\n offset_lock mutex init has failed\n"); 
         return 1; 
     } 
 
-   // printf("entering while loop!!\n");
     while(true){
 
 
@@ -915,13 +865,10 @@ int main(int argc, char** argv)
 
         int errnum = errno;
         if(client_fd ==-1){
-        //    printf("errnum is: %d\n", errnum);
         }
 
         pthread_mutex_lock(&mutex);
         //Add work to queue
-
-     //   printf("client_fd is: %d\n", client_fd);
         queue_size++;
         enqueue(queue_ptr,client_fd);
 
@@ -931,5 +878,3 @@ int main(int argc, char** argv)
 
     return 0;
 } 
-
-//0000000000000000000
